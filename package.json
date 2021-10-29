@@ -1,11 +1,8 @@
 {
-  "name": "react",
+  "name": "flotilla-giraffe",
   "version": "1.0.0",
-  "description": "React example starter project",
-  "keywords": [
-    "react",
-    "starter"
-  ],
+  "description": "A react/material ui interface for a robot using pimoroni 'flotilla' components on a raspi",
+  "keywords": [],
   "main": "src/index.js",
   "dependencies": {
     "@material-ui/core": "4.12.3",
