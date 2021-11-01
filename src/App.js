@@ -138,12 +138,12 @@ class Telemetry extends React.Component {
     };
 
     var requestURL = {
-      remote: "https://zimchaa.zapto.org/telemetry"
+      telemetry: "/telemetry"
     };
 
     // console.log(requestURL.remote);
 
-    fetch(requestURL.remote, requestOptions)
+    fetch(requestURL.telemetry, requestOptions)
       .then((response) => response.json())
       .then((result) =>
         this.setState((state) => ({
@@ -207,16 +207,12 @@ export default function CenteredGrid() {
       };
 
       var requestURL = {
-        remote:
-          "https://zimchaa.zapto.org/thrust/" +
-          newthrustvalue +
-          "/diff/" +
-          newdiffvalue
+        thrust: "/thrust/" + newthrustvalue + "/diff/" + newdiffvalue
       };
 
-      console.log(requestURL.remote);
+      console.log(requestURL.thrust);
 
-      fetch(requestURL.remote, requestOptions)
+      fetch(requestURL.thrust, requestOptions)
         .then((response) => response.json())
         .then((result) => handlemovementChangeResult(result))
         .then((result) => console.log(result))
@@ -250,7 +246,7 @@ export default function CenteredGrid() {
     };
 
     var requestURL = {
-      remote: "https://zimchaa.zapto.org/rainbow",
+      rainbow: "/rainbow",
       allon: "/6",
       alloff: "/5",
       pixel1: "/0",
@@ -259,7 +255,7 @@ export default function CenteredGrid() {
       brightness: "/150"
     };
 
-    var composedURL = requestURL.remote;
+    var composedURL = requestURL.rainbow;
 
     if (toggleLight) {
       composedURL = composedURL + requestURL.allon;
@@ -326,7 +322,7 @@ export default function CenteredGrid() {
         <Grid item xs={8}>
           <Paper className={classes.papertall}>
             <img
-              src="https://zimchaa.zapto.org/stream/video.mjpeg"
+              src="/stream/video.mjpeg"
               height="100%"
               alt="Live stream: Robot"
             />
