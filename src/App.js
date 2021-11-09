@@ -1,6 +1,5 @@
 import "./styles.css";
 
-import AppBar from "@material-ui/core/AppBar";
 import Chip from "@material-ui/core/Chip";
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
