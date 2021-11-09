@@ -320,7 +320,7 @@ export default function CenteredGrid() {
           </Paper>
         </Grid>
         <Grid item xs={8}>
-          <Paper className={classes.papertall}>
+          <Paper className={classes.papertall} id="p5-telemetry">
             <img
               src="/stream/video.mjpeg"
               height="100%"
