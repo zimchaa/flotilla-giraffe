@@ -7,6 +7,7 @@
   "dependencies": {
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.11.2",
+    "p5js": "1.2.17",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-scripts": "4.0.3"
