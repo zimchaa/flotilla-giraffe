@@ -50,6 +50,8 @@ import ReportIcon from "@material-ui/icons/Report";
 
 import React from "react";
 
+import Sketch from "react-p5";
+
 const thrustmarks = [
   {
     value: 50,
@@ -124,6 +126,184 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(0.5)
   }
 }));
+
+let FLOTILLA_HOST = "flotilla.local";
+
+let STREAM_PORT = ":8080";
+let TELEMETRY_PORT = ":8000";
+
+let TELEMETRY = "/telemetry";
+let STREAM = "/stream/video.mjpeg";
+
+let TELEMETRY_URL = "http://" + FLOTILLA_HOST + TELEMETRY_PORT + TELEMETRY;
+let STREAM_URL = "http://" + FLOTILLA_HOST + STREAM_PORT + STREAM;
+
+let UI_W = 320;
+let UI_H = 240;
+
+let UI_GRID_W = UI_W / 6;
+let UI_GRID_H = UI_H / 4;
+
+let UI_PAD = UI_GRID_W / 10;
+
+// Location for the COMPASS = last 1/6th on the right, top 1/4
+let COMP_LOC = [UI_GRID_W * 5 + UI_GRID_W / 2, UI_GRID_H / 2];
+
+let COMP_SIZ = UI_GRID_W - UI_PAD;
+
+let XYZ_LOC = [COMP_LOC[0], UI_GRID_H / 2 + UI_GRID_H * 2];
+
+let imageStream = null;
+
+class ViewPort extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { x: 0, y: 0, z: 1, heading: 0 };
+  }
+
+  updateTelemetry() {
+    var requestOptions = {
+      method: "GET",
+      redirect: "follow"
+    };
+
+    var requestURL = {
+      telemetry: TELEMETRY_URL
+    };
+
+    console.log(requestURL.telemetry);
+
+    fetch(requestURL.telemetry, requestOptions)
+      .then((response) => response.json())
+      .then((result) =>
+        this.setState((state) => ({
+          x: result.x,
+          y: result.y,
+          z: result.z,
+          heading: result.heading
+        }))
+      )
+      // .then((result) => console.log(this.state))
+      .catch((error) => console.log("telemetry error: ", error));
+  }
+
+  componentDidMount() {
+    this.interval = setInterval(() => this.updateTelemetry(), 5000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
+  }
+
+  setup = (p5, canvasParentRef) => {
+    p5.createCanvas(UI_W, UI_H).parent(canvasParentRef);
+    p5.frameRate(this.fr);
+    // use parent to render canvas in this ref (without that p5 render this canvas outside your component)
+
+    imageStream = p5.createImg(STREAM_URL, "Giraffe Stream");
+    imageStream.hide();
+
+    // set up the environment style
+    p5.textAlign(p5.CENTER, p5.CENTER);
+    p5.ellipseMode(p5.CENTER);
+    p5.angleMode(p5.DEGREES);
+  };
+
+  draw = (p5) => {
+    if (imageStream) {
+      p5.image(imageStream, 0, 0);
+    }
+
+    p5.translate(COMP_LOC[0], COMP_LOC[1]);
+
+    // transparent fill
+    p5.fill(255, 255, 255, 100);
+
+    // draw out the base of the compass (simple for the moment)
+    p5.ellipse(0, 0, COMP_SIZ);
+
+    // setup fill
+    p5.noFill();
+
+    // set the rotation up for the compass needle
+    p5.rotate(this.state.heading);
+
+    // draw the compass needle as a quad
+    p5.strokeWeight(5);
+    p5.quad(
+      -(COMP_SIZ / 4),
+      0,
+      0,
+      -(COMP_SIZ / 2),
+      COMP_SIZ / 4,
+      0,
+      0,
+      COMP_SIZ / 2
+    );
+    p5.strokeWeight(1);
+
+    // setup fill and stroke
+    p5.fill(0, 0, 0, 0);
+
+    p5.textSize(14);
+    p5.textStyle(p5.BOLD);
+    p5.fill(255, 0, 0);
+    // display the details of the heading
+    p5.text("N", 0, -(COMP_SIZ / 2) + UI_PAD * 2);
+    p5.textStyle(p5.NORMAL);
+
+    // reset the rotation and translation
+    p5.rotate(-this.state.heading);
+
+    p5.textSize(12);
+    p5.fill(255, 255, 255);
+    p5.text(this.state.heading + "\xB0", 0, 0);
+
+    p5.translate(-COMP_LOC[0], -COMP_LOC[1]);
+    p5.noFill();
+    p5.textSize(10);
+    p5.textStyle(p5.NORMAL);
+
+    // translate to the XYZ data location
+    p5.translate(XYZ_LOC[0], XYZ_LOC[1]);
+
+    p5.fill(0, 0, 0, 255);
+
+    // display a centre point for the robot
+    p5.strokeWeight(10);
+    p5.point(0, 0);
+    p5.strokeWeight(1);
+
+    p5.rotate(this.state.z);
+
+    // turn off fill so that we can see all the circles
+    // transparent fill
+    p5.fill(255, 255, 255, 100);
+
+    // display x_data value
+    p5.ellipse(0, 0, this.state.x, UI_GRID_H - UI_PAD * 2);
+
+    // display the y_data value
+    p5.ellipse(0, 0, UI_GRID_H - UI_PAD * 2, this.state.y);
+
+    // display the z_data value
+    p5.ellipse(0, 0, UI_GRID_H - UI_PAD * 2);
+
+    p5.fill(255, 255, 255, 255);
+    p5.text("z: " + this.state.z, 0, -(UI_GRID_H / 2));
+    p5.text("x: " + this.state.x, 0, UI_GRID_H / 2);
+    p5.text("y: " + this.state.y, -(UI_GRID_W / 2) - UI_PAD, 0);
+
+    // reset the rotation and translation
+    p5.rotate(-this.state.z);
+    p5.translate(-XYZ_LOC[0], -XYZ_LOC[1]);
+    p5.fill(255);
+  };
+
+  render() {
+    return <Sketch setup={this.setup} draw={this.draw} />;
+  }
+}
 
 class Telemetry extends React.Component {
   constructor(props) {
@@ -321,11 +501,7 @@ export default function CenteredGrid() {
         </Grid>
         <Grid item xs={8}>
           <Paper className={classes.papertall} id="p5-telemetry">
-            <img
-              src="/stream/video.mjpeg"
-              height="100%"
-              alt="Live stream: Robot"
-            />
+            <ViewPort />
           </Paper>
         </Grid>
         <Grid item xs={2}>
